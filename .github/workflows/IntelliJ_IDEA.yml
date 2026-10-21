@@ -17,6 +17,10 @@ on:
         type: string
         description: 'build number'
         required: true
+
+permissions:
+  contents: read
+
 jobs:
   get_version:
     runs-on: ubuntu-latest
@@ -24,16 +28,24 @@ jobs:
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4.2.2
-        # checkout only needed to read build.txt. if run manually we specify the version as an input value
-        if: github.event_name != 'workflow_dispatch'
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Test release preparation
+        run: node --test .github/scripts/prepare-release.test.mjs
       - name: get build number
         id: get_version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            version=${{ inputs.version }}
+            version="$INPUT_VERSION"
           else
             version="$(cat build.txt)"
+          fi
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9A-Za-z][0-9A-Za-z.+-]*$ ]]; then
+            echo "::error::Use a build number such as 1.1.22-precipoint.1."
+            exit 1
           fi
           echo "version: $version"
           echo "version=$version" >> "$GITHUB_OUTPUT"
@@ -54,8 +66,18 @@ jobs:
       - get_version
       - build
     if: github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
     steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v4.1.8
+        with:
+          path: artifacts
+
+      - name: Check and collect release assets
+        run: node .github/scripts/prepare-release.mjs artifacts release-assets
 
       - name: Create Release
         # the maintainer said they archived this action because "there are much better alternatives these days"
@@ -65,20 +87,6 @@ jobs:
           title: ${{ needs.get_version.outputs.version }}
           automatic_release_tag: ${{ needs.get_version.outputs.version }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: false
+          prerelease: ${{ github.repository != 'DetachHead/rebased' }}
           draft: true
-          # TODO: this is a complete fucking nighgtmare to maintain... we need to very carefully fine tune this list of globs so that
-          # all the necessary assets are included, while also preventing any unsigned windows assets from being uploaded. we also need to
-          # prevent any duplicates from being uploaded (ie. the same file being matched from multiple artifacts), otherwise the action
-          # will crash... i fucking hate github actions so much
-          files: |
-            **/*.tar.gz
-            **/*.AppImage
-            **/*.zsync
-            linux*/*.spdx.json
-            windows-signed-*/rebased*.exe
-            windows-signed-*/*.spdx.json
-            **/*.win.zip
-            **/*.win.zip.spdx.json
-            **/*.dmg
-            mac*/*.spdx.json
+          files: release-assets/*

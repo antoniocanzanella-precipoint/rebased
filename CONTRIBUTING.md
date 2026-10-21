@@ -107,6 +107,31 @@ docker run --rm --user "$(id -u)" --volume "${PWD}:/community" intellij_idea_env
 > This prevents issues with permissions for the checked-out repository, the build output, if any.
 
 ---
+## Building a fork release
+
+The fork can build all packages before upstream merges a feature.
+Use a branch that contains the latest upstream master, the feature, and the fork release workflow.
+The branch `codex/prepare-fork-release` contains this combination for Repositories by Branch.
+Master can contain platform changes that upstream has not released.
+
+1. Push the release branch to the fork.
+2. Open the fork on GitHub and enable GitHub Actions if needed.
+3. Select **Actions > Rebased > Run workflow**.
+4. Select the release branch and enter a unique version, such as `1.1.22-precipoint.1`.
+5. Run the workflow and wait for all builds to complete.
+6. Open **Releases** and review the draft before publishing it.
+
+The workflow checks 20 required assets before it creates the draft.
+These assets include Windows installers and ZIP files, macOS disk images, Linux archives and AppImages, update files, and software bills of materials.
+The check rejects missing files and empty files.
+It selects each asset from its build artifact to avoid duplicate uploads.
+
+The fork uses unsigned Windows installers and skips upstream signing.
+It needs no upstream signing token.
+The draft is a prerelease.
+The fork does not update upstream winget or Homebrew packages.
+Published prereleases have direct download links on the release page.
+
 ## Running Rebased from IDEA
 
 To run the Rebased that was built from source, choose _Run | Run..._ from the main menu

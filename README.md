@@ -15,6 +15,14 @@ See [this youtrack issue](https://youtrack.jetbrains.com/issue/IJPL-72504/Make-g
 
 ## Installation
 
+### Fork builds
+
+Download builds with **Repositories by Branch** from [the fork releases](https://github.com/antoniocanzanella-precipoint/rebased/releases).
+The fork builds Windows, macOS, and Linux packages for x86_64 and aarch64.
+The Windows installers are unsigned.
+Builds from master are prereleases.
+See [the fork release instructions](CONTRIBUTING.md#building-a-fork-release).
+
 ### Linux
 
 We recommend installing the AppImage with with [AppManager](https://github.com/kem-a/AppManager) to install it to your applications menu, and for automatic updates:
