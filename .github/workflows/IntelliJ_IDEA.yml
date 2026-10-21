@@ -27,28 +27,18 @@ jobs:
     if: github.event_name != 'pull_request' || !startsWith(github.event.pull_request.head.ref, 'release/')
     outputs:
       version: ${{ steps.get_version.outputs.version }}
+      build_version: ${{ steps.get_version.outputs.build_version }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
       - name: Test release preparation
-        run: node --test .github/scripts/prepare-release.test.mjs
+        run: node --test .github/scripts/prepare-release.test.mjs .github/scripts/release-version.test.mjs
       - name: get build number
         id: get_version
         env:
           INPUT_VERSION: ${{ inputs.version }}
-        run: |
-          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            version="$INPUT_VERSION"
-          else
-            version="$(cat build.txt)"
-          fi
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9A-Za-z][0-9A-Za-z.+-]*$ ]]; then
-            echo "::error::Use a build number such as 1.1.22-precipoint.1."
-            exit 1
-          fi
-          echo "version: $version"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+        run: node .github/scripts/release-version.mjs
 
   build:
     needs: get_version
@@ -57,7 +47,7 @@ jobs:
     with:
       artifacts_dir: out/idea-ce/artifacts
       product: intellij_idea
-      version: ${{ needs.get_version.outputs.version }}
+      version: ${{ needs.get_version.outputs.build_version }}
 
   release:
     name: Create Release

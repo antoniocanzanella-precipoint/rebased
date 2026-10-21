@@ -121,6 +121,10 @@ Master can contain platform changes that upstream has not released.
 5. Run the workflow and wait for all builds to complete.
 6. Open **Releases** and review the draft before publishing it.
 
+The tag can include a suffix, such as `1.1.22-precipoint.1`.
+The workflow uses only the numeric part, `1.1.22`, for package versions.
+This keeps the Windows installer version valid.
+
 The workflow checks 20 required assets before it creates the draft.
 These assets include Windows installers and ZIP files, macOS disk images, Linux archives and AppImages, update files, and software bills of materials.
 The check rejects missing files and empty files.
