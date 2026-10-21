@@ -41,6 +41,7 @@ jobs:
   build:
     needs: get_version
     uses: ./.github/workflows/ide_build_and_upload.yml
+    secrets: inherit
     with:
       artifacts_dir: out/idea-ce/artifacts
       product: intellij_idea
@@ -66,12 +67,18 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
           draft: true
+          # TODO: this is a complete fucking nighgtmare to maintain... we need to very carefully fine tune this list of globs so that
+          # all the necessary assets are included, while also preventing any unsigned windows assets from being uploaded. we also need to
+          # prevent any duplicates from being uploaded (ie. the same file being matched from multiple artifacts), otherwise the action
+          # will crash... i fucking hate github actions so much
           files: |
             **/*.tar.gz
             **/*.AppImage
             **/*.zsync
-            **/*.exe
+            linux*/*.spdx.json
+            windows-signed-*/rebased*.exe
+            windows-signed-*/*.spdx.json
             **/*.win.zip
+            **/*.win.zip.spdx.json
             **/*.dmg
-            **/*.spdx.json
-            
+            mac*/*.spdx.json
