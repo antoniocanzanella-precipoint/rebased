@@ -111,7 +111,7 @@ docker run --rm --user "$(id -u)" --volume "${PWD}:/community" intellij_idea_env
 
 The fork can build all packages before upstream merges a feature.
 Use a branch that contains the latest upstream master, the feature, and the fork release workflow.
-The branch `codex/prepare-fork-release` contains this combination for Repositories by Branch.
+The branch `prepare-fork-release` contains this combination for Repositories by Branch.
 Master can contain platform changes that upstream has not released.
 
 1. Push the release branch to the fork.
